@@ -1,0 +1,52 @@
+const HtmlWebPackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserPlugin = require("terser-webpack-plugin");
+const WorkboxPlugin = require('workbox-webpack-plugin');
+
+module.exports = {
+    entry: './src/client/index.js',
+    output: {
+        libraryTarget: 'var',
+        library: 'Client'
+    },
+    mode: 'production',
+    module: {
+        rules: [
+                 
+            
+            {
+                test: '/\.js$/',
+                exclude: /node_modules/,
+                loader: "babel-loader"
+            },
+            {
+                test: /\.scss$/,
+                use:[MiniCssExtractPlugin.loader,'css-loader','sass-loader']
+            }
+        ]
+    },
+    plugins: [
+        new HtmlWebPackPlugin({
+            template: './src/client/views/index.html',
+            filename: './index.html'
+        }),
+        new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' }),
+        new OptimizeCssAssetsPlugin({
+            assetNameRegExp: /\.optimize\.css$/g,
+            cssProcessor: require('cssnano'),
+            cssProcessorPluginOptions: {
+              preset: ['default', { discardComments: { removeAll: true } }],
+            },
+            canPrint: true
+          }),
+        new WorkboxPlugin.GenerateSW()
+    ],
+    optimization: {
+        minimize: true,
+        minimizer: [new TerserPlugin({
+            test: /\.js$/i,
+            exclude: /\/node_modules/,
+        })],
+    }
+}
